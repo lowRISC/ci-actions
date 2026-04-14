@@ -4,9 +4,9 @@ Reusable GitHub Actions for lowRISC CI workflows.
 
 ## Actions
 
-### `lowrisc_ci_app_get_token`
+### `ca-token`
 
-Obtains a short-lived lowrisc-ci GitHub App installation access token from the lowRISC CA, using GitHub's OIDC provider to authenticate the request.
+Obtains a short-lived token from the lowRISC CA, using GitHub's OIDC provider to authenticate the request.
 
 **Requires `id-token: write` in the calling job.**
 
@@ -22,7 +22,7 @@ Obtains a short-lived lowrisc-ci GitHub App installation access token from the l
 
 | Output | Description |
 |--------|-------------|
-| `token` | Short-lived installation access token |
+| `token` | Short-lived token |
 
 #### Example
 
@@ -32,9 +32,9 @@ jobs:
     permissions:
       id-token: write
     steps:
-      - name: Get a short-lived lowrisc-ci app token
+      - name: Get a lowRISC CA token
         id: get-token
-        uses: lowrisc/ci-actions/lowrisc_ci_app_get_token@v1
+        uses: lowrisc/ci-actions/ca-token@v1
 
       - name: Use token
         run: |
@@ -44,7 +44,7 @@ jobs:
 To override the CA endpoint or HTTP method:
 
 ```yaml
-      - uses: lowrisc/ci-actions/lowrisc_ci_app_get_token@v1
+      - uses: lowrisc/ci-actions/ca-token@v1
         with:
           ca_api_endpoint: "https://ca.lowrisc.org/api/nix-caches/public/token"
           ca_api_method: "GET"

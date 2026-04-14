@@ -5,8 +5,8 @@
 # NOTE.
 # Requires id-token: write in the calling job to get the JWT
 
-name: Get lowrisc-ci app access token
-description: Obtain a lowrisc-ci GitHub App installation access token from the lowRISC CA
+name: Get lowRISC CA token
+description: Obtain a token from the lowRISC CA using GitHub OIDC authentication
 
 inputs:
   audience:
@@ -33,7 +33,7 @@ runs:
         ID_TOKEN=$(curl -sSf -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=${{ inputs.audience }}" | jq -r .value)
         echo "::add-mask::$ID_TOKEN"
 
-        # Now use the JWT to request the lowRISC CA to provide a lowrisc-ci app installation access token suitable for our action
+        # Now use the JWT to request the lowRISC CA to provide a token
         ACCESS_TOKEN=$(curl -sSf -X ${{ inputs.ca_api_method }} -H "Authorization: Bearer $ID_TOKEN" ${{ inputs.ca_api_endpoint }})
         echo "::add-mask::$ACCESS_TOKEN"
 
