@@ -1,0 +1,61 @@
+# Copyright lowRISC contributors.
+#
+# SPDX-License-Identifier: MIT
+
+# NOTE.
+# Requires id-token: write in the calling job to get the JWT
+
+name: Get lowRISC CA GitHub token
+description: >
+  Obtain a short-lived GitHub installation access token from the lowRISC CA
+  using GitHub OIDC authentication. A thin wrapper around ca-request that
+  constructs the role-based request body for the github-ca-v2 API.
+
+inputs:
+  audience:
+    description: Intended audience for the requested JWT.
+    type: string
+    default: "https://ca.lowrisc.org"
+  org:
+    description: GitHub organisation name to obtain a token for.
+    type: string
+    default: "lowRISC"
+  role:
+    description: IAM role to request from the CA. Required.
+    type: string
+  repo:
+    description: >
+      Repository in org/repo format. Passed to the CA for use in CEL conditions
+      on bindings; does not restrict the token scope. Optional.
+    type: string
+    default: ""
+
+runs:
+  using: "composite"
+  steps:
+    - name: Build request body
+      id: build_body
+      shell: bash
+      env:
+        INPUT_ROLE: ${{ inputs.role }}
+        INPUT_REPO: ${{ inputs.repo }}
+      run: |
+        BODY=$(jq -cn \
+          --arg role "$INPUT_ROLE" \
+          --arg repo "$INPUT_REPO" \
+          'if $repo != "" then {"role": $role, "repo": $repo} else {"role": $role} end')
+        echo "body=$BODY" >> "$GITHUB_OUTPUT"
+
+    - name: Request GitHub installation access token
+      id: ca_request
+      uses: lowRISC/ci-actions/ca-request@v2
+      with:
+        audience: ${{ inputs.audience }}
+        ca_api_endpoint: "https://ca.lowrisc.org/api/github/orgs/${{ inputs.org }}/token"
+        ca_api_method: "POST"
+        body: ${{ steps.build_body.outputs.body }}
+
+outputs:
+  token:
+    description: "GitHub installation access token"
+    value: ${{ steps.ca_request.outputs.token }}
